@@ -2,10 +2,11 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { qaTopics } from '../data/qa.js'
 import importedQA from '../data/importedQA.json'
 import { downloadTopicPdf } from '../utils/pdf.js'
-// pdfImport (and the heavy pdf.js library) is loaded lazily on first upload.
+import { idbGetAll, idbPut, idbDelete } from '../utils/store.js'
+// pdfImport (heavy pdf.js library) is loaded lazily on first upload.
 
 const levelLabel = { basic: 'Basic', inter: 'Intermediate', adv: 'Advanced' }
-const STORAGE_KEY = 'ip_customTopics_v1'
+const OLD_LS_KEY = 'ip_customTopics_v1'
 
 // Items for a topic: custom topics carry their own items; built-ins prefer the imported bank.
 function topicItems(topic) {
@@ -13,17 +14,8 @@ function topicItems(topic) {
   return importedQA[topic.id] && importedQA[topic.id].length ? importedQA[topic.id] : topic.items
 }
 
-function loadCustom() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
 export default function QA() {
-  const [custom, setCustom] = useState(loadCustom)
+  const [custom, setCustom] = useState([])
   const [active, setActive] = useState(qaTopics[0].id)
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState({})
@@ -31,14 +23,27 @@ export default function QA() {
   const [notice, setNotice] = useState(null)
   const fileRef = useRef(null)
 
-  // Persist custom topics whenever they change.
+  // Load persisted PDF topics from IndexedDB on mount (migrating any old localStorage data).
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(custom))
-    } catch {
-      setNotice({ type: 'err', msg: 'Could not save to this browser (storage full).' })
+    let cancelled = false
+    ;(async () => {
+      try {
+        const old = localStorage.getItem(OLD_LS_KEY)
+        if (old) {
+          const arr = JSON.parse(old)
+          for (const t of arr) await idbPut('pdfTopics', t)
+          localStorage.removeItem(OLD_LS_KEY)
+        }
+      } catch {
+        /* ignore migration errors */
+      }
+      const saved = await idbGetAll('pdfTopics')
+      if (!cancelled) setCustom(saved.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)))
+    })()
+    return () => {
+      cancelled = true
     }
-  }, [custom])
+  }, [])
 
   const allTopics = useMemo(() => [...qaTopics, ...custom], [custom])
   const topic = useMemo(
@@ -57,7 +62,7 @@ export default function QA() {
 
   async function onFile(e) {
     const file = e.target.files && e.target.files[0]
-    if (fileRef.current) fileRef.current.value = '' // allow re-uploading same file
+    if (fileRef.current) fileRef.current.value = ''
     if (!file) return
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       setNotice({ type: 'err', msg: 'Please choose a PDF file.' })
@@ -81,24 +86,46 @@ export default function QA() {
         custom: true,
         download: true,
         items,
+        pdf: file, // the actual PDF file, stored in IndexedDB until deleted
+        fileName: file.name,
+        size: file.size,
+        createdAt: Date.now(),
       }
+      await idbPut('pdfTopics', newTopic)
       setCustom((c) => [...c, newTopic])
       setActive(newTopic.id)
       setQuery('')
       setOpen({})
-      setNotice({ type: 'ok', msg: `Added “${label}” with ${items.length} questions.` })
+      setNotice({ type: 'ok', msg: `Saved “${label}” (${items.length} questions). It stays until you delete it.` })
     } catch (err) {
       setNotice({ type: 'err', msg: 'Could not read that PDF. Try another file.' })
     }
     setImporting(false)
   }
 
-  function removeCustom(id, e) {
+  async function removeCustom(id, e) {
     if (e) e.stopPropagation()
     const t = custom.find((x) => x.id === id)
-    if (!window.confirm(`Remove “${t ? t.label : 'this PDF'}” from your saved topics?`)) return
+    if (!window.confirm(`Delete “${t ? t.label : 'this PDF'}”? This removes it from this device.`)) return
+    await idbDelete('pdfTopics', id)
     setCustom((c) => c.filter((x) => x.id !== id))
     if (active === id) setActive(qaTopics[0].id)
+    setNotice({ type: 'ok', msg: `Deleted “${t ? t.label : 'PDF'}”.` })
+  }
+
+  function downloadOriginal(t) {
+    if (!t.pdf) {
+      setNotice({ type: 'err', msg: 'Original PDF not available for this item.' })
+      return
+    }
+    const url = URL.createObjectURL(t.pdf)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = t.fileName || (t.label || 'document') + '.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1500)
   }
 
   let lastSection = null
@@ -109,7 +136,7 @@ export default function QA() {
         <h2>❓ Questions &amp; Answers</h2>
         <p>
           Every topic, basic → advanced. Java, Python, Spring Boot &amp; AWS include full interview
-          banks. <b>Upload your own PDF</b> and it becomes a new topic button.
+          banks. <b>Upload your own PDF</b> — it is saved on this device until you delete it.
         </p>
       </div>
 
@@ -147,11 +174,11 @@ export default function QA() {
               setQuery('')
               setOpen({})
             }}
-            title="Your uploaded PDF (saved in this browser)"
+            title="Your uploaded PDF (saved on this device)"
           >
             <span className="ic">{t.icon}</span>
             {t.label}
-            <span className="remove" onClick={(e) => removeCustom(t.id, e)} title="Remove">
+            <span className="remove" onClick={(e) => removeCustom(t.id, e)} title="Delete">
               ✕
             </span>
           </button>
@@ -183,7 +210,16 @@ export default function QA() {
                 onClick={() => downloadTopicPdf(topic.label, allItems)}
                 title={`Download ${topic.label} Q&A as PDF`}
               >
-                ⬇ Download PDF
+                ⬇ Download Q&amp;A
+              </button>
+            )}
+            {topic.custom && topic.pdf && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => downloadOriginal(topic)}
+                title="Download the original PDF you uploaded"
+              >
+                📄 Original PDF
               </button>
             )}
             {topic.custom && (
@@ -200,8 +236,8 @@ export default function QA() {
 
         {topic.custom && (
           <p className="muted" style={{ marginTop: 0 }}>
-            📄 Uploaded PDF — saved only in this browser. Delete it anytime with the 🗑 button
-            above or the ✕ on its topic button. Built-in topics can’t be deleted.
+            📄 Uploaded PDF — the file is saved on this device (in your browser) and stays until you
+            delete it. Built-in topics can’t be deleted.
           </p>
         )}
 

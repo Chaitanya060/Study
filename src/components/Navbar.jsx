@@ -6,6 +6,7 @@ const links = [
   { to: '/notes', label: 'Notes' },
   { to: '/qa', label: 'Q&A' },
   { to: '/oop', label: 'OOP Concept' },
+  { to: '/mynotes', label: 'My Notes' },
   { to: '/hr', label: 'HR & Intro' },
   { to: '/projects', label: 'Projects' },
 ]

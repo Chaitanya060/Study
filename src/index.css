@@ -648,6 +648,229 @@ a {
   background: rgba(239, 68, 68, 0.9);
   color: #fff;
 }
+.btn-secondary {
+  background: var(--glass-2);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+}
+.btn-secondary:hover {
+  border-color: var(--glass-border-2);
+}
+
+/* ============ MY NOTES (notebook) ============ */
+.notebook {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.nb-list {
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 78px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.nb-new {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.nb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.15s;
+}
+.nb-item:hover {
+  background: var(--glass-2);
+}
+.nb-item.active {
+  background: linear-gradient(90deg, rgba(109, 107, 251, 0.28), rgba(168, 85, 247, 0.12));
+  border-color: rgba(109, 107, 251, 0.5);
+}
+.nb-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.nb-title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nb-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+.nb-del {
+  opacity: 0.5;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.nb-del:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.nb-editor {
+  min-height: 60vh;
+}
+.nb-empty {
+  text-align: center;
+  padding: 40px 10px;
+  color: var(--muted);
+}
+.nb-empty p {
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+.nb-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  padding: 4px 2px 10px;
+  margin-bottom: 8px;
+}
+.nb-title-input:focus {
+  outline: none;
+}
+.nb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--glass-2);
+  margin-bottom: 12px;
+  position: sticky;
+  top: 74px;
+  z-index: 5;
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+}
+.nb-tool {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.12s;
+}
+.nb-tool:hover {
+  background: var(--brand);
+  border-color: transparent;
+  color: #fff;
+}
+.nb-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--glass-border);
+  margin: 0 3px;
+}
+.nb-delete {
+  margin-left: auto;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.nb-content {
+  min-height: 46vh;
+  padding: 6px 4px 20px;
+  font-size: 16px;
+  line-height: 1.7;
+  outline: none;
+}
+.nb-content:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+}
+.nb-content h1 {
+  font-size: 28px;
+  margin: 14px 0 6px;
+}
+.nb-content h2 {
+  font-size: 23px;
+  margin: 12px 0 6px;
+}
+.nb-content h3 {
+  font-size: 19px;
+  margin: 10px 0 5px;
+}
+.nb-content ul,
+.nb-content ol {
+  padding-left: 26px;
+}
+.nb-content blockquote {
+  border-left: 3px solid var(--brand);
+  margin: 10px 0;
+  padding: 4px 14px;
+  color: #cfd4e6;
+  background: var(--glass-2);
+  border-radius: 0 8px 8px 0;
+}
+.nb-content pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-size: 14px;
+}
+.nb-content a {
+  color: var(--accent);
+}
+.nb-content .todo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nb-content input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+}
+.nb-saved {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .notebook {
+    grid-template-columns: 1fr;
+  }
+  .nb-list {
+    position: static;
+    max-height: 240px;
+  }
+  .nb-toolbar {
+    top: 66px;
+  }
+}
 .panel-actions {
   display: flex;
   gap: 8px;

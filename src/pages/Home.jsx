@@ -20,6 +20,12 @@ const cards = [
     desc: 'Object-Oriented Programming explained the easy way — with real-life examples, notes & questions.',
   },
   {
+    to: '/mynotes',
+    emoji: '📝',
+    title: 'My Notes',
+    desc: 'Your own Notion/Obsidian-style notebook — write, format & save your notes. Upload PDFs on the Q&A page too.',
+  },
+  {
     to: '/hr',
     emoji: '🧑‍💼',
     title: 'HR & Self Intro',

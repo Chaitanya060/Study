@@ -10,6 +10,8 @@ Built with **Vite + React + React Router**. No backend required — ready to dep
 | **Notes** | 24 topic buttons covering the full interview syllabus — Java, Python, Data Structures, Algorithms, DBMS/SQL, MongoDB/NoSQL, OS, Networks, HTML, CSS, JavaScript, React, Spring Boot, Hibernate/JPA, Microservices, REST, AWS/Cloud, Docker & DevOps, Linux, SDLC/Agile, System Design, Git, Testing, Cyber Security. Clean, easy-to-read notes from basic → advanced, with a per-topic search box. |
 | **Q&A** | Interview questions & answers for every one of those topics, basic → advanced. **Java, Python & AWS** have a **Download PDF** button (top-right) that downloads that topic's Q&A as a PDF. |
 | **OOP Concept** | A dedicated page explaining Object-Oriented Programming the easy way — with real-life examples — plus its own Notes and Q&A tabs (with a PDF download). |
+| **My Notes** | A personal Notion/Obsidian-style notebook — create notes, format with a rich toolbar (headings, lists, to-dos, quote, code, highlight, links), autosaved to the browser (IndexedDB), each deletable. |
+| **Upload PDF (on Q&A)** | Upload your own PDF; it's read in the browser (pdf.js), parsed into Q&A, and added as a topic button named after the file. The **actual PDF file is stored in IndexedDB** and persists until you delete it (🗑 button). Built-in topics can't be deleted. |
 | **HR & Intro** | A ready self-introduction (short + full version) — written fresh, not from the resume — plus common HR questions with sample answers. |
 | **Projects** | Your 3 resume projects with likely interviewer questions from basic → advanced. |
 
