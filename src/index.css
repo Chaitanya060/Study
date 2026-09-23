@@ -369,6 +369,58 @@ a {
 .topic-btn .ic {
   font-size: 15px;
 }
+.topic-btn.add-pdf {
+  border-style: dashed;
+  border-color: var(--brand);
+  color: #c9c8ff;
+  background: rgba(109, 107, 251, 0.12);
+}
+.topic-btn.add-pdf:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.topic-btn.custom {
+  border-color: rgba(52, 211, 153, 0.5);
+}
+.topic-btn.custom.active {
+  background: linear-gradient(90deg, var(--green), #10b981);
+  color: #04120c;
+}
+.topic-btn .remove {
+  margin-left: 2px;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+}
+.topic-btn .remove:hover {
+  background: rgba(239, 68, 68, 0.85);
+  color: #fff;
+}
+
+/* Upload notice banner */
+.notice {
+  padding: 11px 15px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+}
+.notice.ok {
+  background: rgba(52, 211, 153, 0.14);
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #a7f3d0;
+}
+.notice.err {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fecaca;
+}
 
 /* ============ GLASS PANEL ============ */
 .panel {

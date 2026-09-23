@@ -1,34 +1,106 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { qaTopics } from '../data/qa.js'
 import importedQA from '../data/importedQA.json'
 import { downloadTopicPdf } from '../utils/pdf.js'
+// pdfImport (and the heavy pdf.js library) is loaded lazily on first upload.
 
 const levelLabel = { basic: 'Basic', inter: 'Intermediate', adv: 'Advanced' }
+const STORAGE_KEY = 'ip_customTopics_v1'
 
-// Build final topic item list: use the imported (comprehensive) set when available.
+// Items for a topic: custom topics carry their own items; built-ins prefer the imported bank.
 function topicItems(topic) {
+  if (topic.custom) return topic.items
   return importedQA[topic.id] && importedQA[topic.id].length ? importedQA[topic.id] : topic.items
 }
 
+function loadCustom() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
 export default function QA() {
+  const [custom, setCustom] = useState(loadCustom)
   const [active, setActive] = useState(qaTopics[0].id)
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState({})
+  const [importing, setImporting] = useState(false)
+  const [notice, setNotice] = useState(null)
+  const fileRef = useRef(null)
 
-  const topic = useMemo(() => qaTopics.find((t) => t.id === active), [active])
+  // Persist custom topics whenever they change.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(custom))
+    } catch {
+      setNotice({ type: 'err', msg: 'Could not save to this browser (storage full).' })
+    }
+  }, [custom])
+
+  const allTopics = useMemo(() => [...qaTopics, ...custom], [custom])
+  const topic = useMemo(
+    () => allTopics.find((t) => t.id === active) || allTopics[0],
+    [allTopics, active],
+  )
   const allItems = useMemo(() => topicItems(topic), [topic])
 
   const items = useMemo(() => {
     if (!query.trim()) return allItems
     const q = query.toLowerCase()
-    return allItems.filter(
-      (it) => it.q.toLowerCase().includes(q) || it.a.toLowerCase().includes(q),
-    )
+    return allItems.filter((it) => it.q.toLowerCase().includes(q) || it.a.toLowerCase().includes(q))
   }, [allItems, query])
 
   const toggle = (key) => setOpen((o) => ({ ...o, [key]: !o[key] }))
 
-  // Render items, inserting a section header whenever the section changes.
+  async function onFile(e) {
+    const file = e.target.files && e.target.files[0]
+    if (fileRef.current) fileRef.current.value = '' // allow re-uploading same file
+    if (!file) return
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setNotice({ type: 'err', msg: 'Please choose a PDF file.' })
+      return
+    }
+    setImporting(true)
+    setNotice(null)
+    try {
+      const { importPdf } = await import('../utils/pdfImport.js')
+      const { items } = await importPdf(file)
+      if (!items.length) {
+        setNotice({ type: 'err', msg: 'No readable text found in that PDF.' })
+        setImporting(false)
+        return
+      }
+      const label = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim() || 'My PDF'
+      const newTopic = {
+        id: 'user-' + Date.now(),
+        label,
+        icon: '📄',
+        custom: true,
+        download: true,
+        items,
+      }
+      setCustom((c) => [...c, newTopic])
+      setActive(newTopic.id)
+      setQuery('')
+      setOpen({})
+      setNotice({ type: 'ok', msg: `Added “${label}” with ${items.length} questions.` })
+    } catch (err) {
+      setNotice({ type: 'err', msg: 'Could not read that PDF. Try another file.' })
+    }
+    setImporting(false)
+  }
+
+  function removeCustom(id, e) {
+    e.stopPropagation()
+    const t = custom.find((x) => x.id === id)
+    if (!window.confirm(`Remove “${t ? t.label : 'this PDF'}” from your saved topics?`)) return
+    setCustom((c) => c.filter((x) => x.id !== id))
+    if (active === id) setActive(qaTopics[0].id)
+  }
+
   let lastSection = null
 
   return (
@@ -36,10 +108,18 @@ export default function QA() {
       <div className="page-head">
         <h2>❓ Questions &amp; Answers</h2>
         <p>
-          Every topic, basic → advanced. Java, Python, Spring Boot &amp; AWS now include full
-          interview banks. Java, Python &amp; AWS have a <b>Download PDF</b> button.
+          Every topic, basic → advanced. Java, Python, Spring Boot &amp; AWS include full interview
+          banks. <b>Upload your own PDF</b> and it becomes a new topic button.
         </p>
       </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/pdf,.pdf"
+        onChange={onFile}
+        style={{ display: 'none' }}
+      />
 
       <div className="topics">
         {qaTopics.map((t) => (
@@ -57,7 +137,38 @@ export default function QA() {
             {t.download && ' ⬇'}
           </button>
         ))}
+
+        {custom.map((t) => (
+          <button
+            key={t.id}
+            className={'topic-btn custom' + (t.id === active ? ' active' : '')}
+            onClick={() => {
+              setActive(t.id)
+              setQuery('')
+              setOpen({})
+            }}
+            title="Your uploaded PDF (saved in this browser)"
+          >
+            <span className="ic">{t.icon}</span>
+            {t.label}
+            <span className="remove" onClick={(e) => removeCustom(t.id, e)} title="Remove">
+              ✕
+            </span>
+          </button>
+        ))}
+
+        <button
+          className="topic-btn add-pdf"
+          onClick={() => fileRef.current && fileRef.current.click()}
+          disabled={importing}
+        >
+          {importing ? '⏳ Reading PDF…' : '➕ Add PDF'}
+        </button>
       </div>
+
+      {notice && (
+        <div className={'notice ' + (notice.type === 'err' ? 'err' : 'ok')}>{notice.msg}</div>
+      )}
 
       <div className="panel">
         <div className="panel-top">
@@ -76,6 +187,12 @@ export default function QA() {
           )}
         </div>
 
+        {topic.custom && (
+          <p className="muted" style={{ marginTop: 0 }}>
+            📄 Uploaded PDF — saved only in this browser. Remove it with the ✕ on its button.
+          </p>
+        )}
+
         <input
           className="search"
           placeholder={`Search ${topic.label} questions...`}
@@ -86,9 +203,9 @@ export default function QA() {
         {items.length === 0 && <p className="muted">No questions match “{query}”.</p>}
 
         {items.map((it, i) => {
-          const key = `${active}-${i}`
+          const key = `${topic.id}-${i}`
           const isOpen = !!open[key]
-          const showSection = it.section && it.section !== lastSection
+          const showSection = it.section && it.section !== lastSection && it.section !== 'General'
           if (it.section) lastSection = it.section
           return (
             <div key={key}>
@@ -97,7 +214,7 @@ export default function QA() {
                 <button className="qa-q" onClick={() => toggle(key)}>
                   <span className="num">Q{i + 1}.</span>
                   <span className="qt">{it.q}</span>
-                  <span className={'tag ' + it.level}>{levelLabel[it.level]}</span>
+                  {it.level && <span className={'tag ' + it.level}>{levelLabel[it.level]}</span>}
                   <span className="chev">▾</span>
                 </button>
                 {isOpen && (
