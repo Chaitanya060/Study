@@ -588,8 +588,40 @@ a {
 .qa-a p:first-child {
   margin-top: 12px;
 }
-.qa-a p {
-  white-space: pre-line; /* keep numbered/bulleted list line breaks from imported answers */
+
+/* Rich answer: readable paragraphs + lists */
+.rich-answer {
+  padding-top: 12px;
+}
+.rich-answer p {
+  margin: 0 0 10px;
+}
+.rich-answer p:last-child,
+.rich-answer ul:last-child,
+.rich-answer ol:last-child {
+  margin-bottom: 0;
+}
+.rich-answer ul,
+.rich-answer ol {
+  margin: 6px 0 12px;
+  padding-left: 22px;
+}
+.rich-answer li {
+  margin: 5px 0;
+}
+.rich-answer ul li::marker {
+  color: var(--brand);
+}
+.rich-answer b {
+  color: #fff;
+}
+.rich-answer code {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--cyan);
 }
 
 /* Section subheading inside a topic's Q&A list */

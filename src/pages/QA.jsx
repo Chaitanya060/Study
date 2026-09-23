@@ -3,6 +3,7 @@ import { qaTopics } from '../data/qa.js'
 import importedQA from '../data/importedQA.json'
 import { downloadTopicPdf } from '../utils/pdf.js'
 import { idbGetAll, idbPut, idbDelete } from '../utils/store.js'
+import RichAnswer from '../components/RichAnswer.jsx'
 // pdfImport (heavy pdf.js library) is loaded lazily on first upload.
 
 const levelLabel = { basic: 'Basic', inter: 'Intermediate', adv: 'Advanced' }
@@ -267,7 +268,7 @@ export default function QA() {
                 </button>
                 {isOpen && (
                   <div className="qa-a">
-                    <p>{it.a}</p>
+                    <RichAnswer text={it.a} />
                   </div>
                 )}
               </div>

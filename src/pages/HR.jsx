@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { selfIntro, hrQuestions } from '../data/hr.js'
 import importedHR from '../data/importedHR.json'
+import RichAnswer from '../components/RichAnswer.jsx'
 
 const levelLabel = { basic: 'Common', inter: 'Frequent', adv: 'Tricky' }
 const impLabel = { basic: 'Basic', inter: 'Important', adv: 'Advanced' }
@@ -24,7 +25,7 @@ function Accordion({ items, open, toggle, prefix, labels }) {
           </button>
           {isOpen && (
             <div className="qa-a">
-              <p>{it.a}</p>
+              <RichAnswer text={it.a} />
             </div>
           )}
         </div>
