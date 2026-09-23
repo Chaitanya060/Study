@@ -94,7 +94,7 @@ export default function QA() {
   }
 
   function removeCustom(id, e) {
-    e.stopPropagation()
+    if (e) e.stopPropagation()
     const t = custom.find((x) => x.id === id)
     if (!window.confirm(`Remove “${t ? t.label : 'this PDF'}” from your saved topics?`)) return
     setCustom((c) => c.filter((x) => x.id !== id))
@@ -176,20 +176,32 @@ export default function QA() {
             {topic.icon} {topic.label}
             <span className="count-badge"> · {allItems.length} questions</span>
           </h3>
-          {topic.download && (
-            <button
-              className="btn btn-download"
-              onClick={() => downloadTopicPdf(topic.label, allItems)}
-              title={`Download ${topic.label} Q&A as PDF`}
-            >
-              ⬇ Download PDF
-            </button>
-          )}
+          <div className="panel-actions">
+            {topic.download && (
+              <button
+                className="btn btn-download"
+                onClick={() => downloadTopicPdf(topic.label, allItems)}
+                title={`Download ${topic.label} Q&A as PDF`}
+              >
+                ⬇ Download PDF
+              </button>
+            )}
+            {topic.custom && (
+              <button
+                className="btn btn-delete"
+                onClick={() => removeCustom(topic.id)}
+                title={`Delete ${topic.label}`}
+              >
+                🗑 Delete this PDF
+              </button>
+            )}
+          </div>
         </div>
 
         {topic.custom && (
           <p className="muted" style={{ marginTop: 0 }}>
-            📄 Uploaded PDF — saved only in this browser. Remove it with the ✕ on its button.
+            📄 Uploaded PDF — saved only in this browser. Delete it anytime with the 🗑 button
+            above or the ✕ on its topic button. Built-in topics can’t be deleted.
           </p>
         )}
 

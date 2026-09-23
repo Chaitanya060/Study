@@ -639,6 +639,20 @@ a {
 .btn-download:hover {
   filter: brightness(1.08);
 }
+.btn-delete {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+}
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 /* ============ SEARCH ============ */
 .search {
